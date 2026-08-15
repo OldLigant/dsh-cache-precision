@@ -1,5 +1,7 @@
 # dsh-cache-precision
 
+English | [中文](README.zh.md)
+
 Two in-place composer-dock refinements:
 
 1. Rewrites the built-in cache-hit percentage with **three decimals**
