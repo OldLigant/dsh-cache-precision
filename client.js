@@ -1,21 +1,16 @@
-/* dsh-cache-precision client half: precise cache-hit readout in the composer dock. */
+/* dsh-cache-precision client half: in-place precise cache-hit percentage.
+ *
+ * The built-in StatsLine renders "缓存命中 12%" with Math.round(). This
+ * plugin mounts an invisible entry in the same composer dock, reads the same
+ * tokenUsage projection, and rewrites only the cache-hit text node in place
+ * to three decimals. Every other stats group stays untouched.
+ */
 window.__ModuleLoader__.load({
   id: 'dsh-cache-precision',
   factory: (require) => {
     var module = { exports: {} }
     var exports = module.exports
     var React = require('react')
-
-    var css = [
-      '.dsh-cachep-line{display:inline-flex;align-items:center;gap:6px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-secondary);white-space:nowrap}',
-      '.dsh-cachep-value{color:var(--dsw-alias-label-primary);font-variant-numeric:tabular-nums;font-weight:600}',
-    ].join('\n')
-    if (typeof document !== 'undefined' && document.querySelector('style[data-plugin="dsh-cache-precision"]') === null) {
-      var styleTag = document.createElement('style')
-      styleTag.dataset.plugin = 'dsh-cache-precision'
-      styleTag.textContent = css
-      document.head.appendChild(styleTag)
-    }
 
     function cacheHitPercent(usage) {
       if (!usage) return null
@@ -31,25 +26,67 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function CacheLine(props) {
+    function patchTextNode(node, value) {
+      var text = node.nodeValue
+      if (!text) return false
+      var match = text.match(/^(缓存命中|Cache hit)\s+\d+(?:\.\d+)?%$/)
+      if (!match) return false
+      var next = match[1] + ' ' + value.percent.toFixed(3) + '%'
+      if (text === next) return false
+      node.nodeValue = next
+      return true
+    }
+
+    function applyPatch(usage, root) {
+      var value = cacheHitPercent(usage)
+      if (!value || !root || typeof document === 'undefined') return 0
+      var changed = 0
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+      var node
+      while ((node = walker.nextNode())) {
+        if (patchTextNode(node, value)) changed++
+      }
+      return changed
+    }
+
+    function PatchEntry(props) {
       var useProjection = props.useProjection
       var usage = useProjection ? useProjection('tokenUsage') : undefined
-      var value = cacheHitPercent(usage)
-      if (!value) return null
-      var text = '缓存命中 ' + value.percent.toFixed(3) + '%'
-      var tip = '精确缓存命中率\n' + value.percent.toFixed(3) + '%\n命中 ' + value.hit + ' / 输入 ' + value.input + ' tokens'
-      return React.createElement('div', { className: 'dsh-cachep-line', title: tip },
-        React.createElement('span', { className: 'dsh-cachep-label' }, '缓存命中'),
-        React.createElement('span', { className: 'dsh-cachep-value' }, value.percent.toFixed(3) + '%')
-      )
+      var rootRef = React.useRef(null)
+
+      React.useLayoutEffect(function () {
+        var root = document && document.body ? document.body : null
+        var timer = null
+
+        function scan() {
+          applyPatch(usage, root)
+        }
+
+        scan()
+        var observer = typeof MutationObserver === 'undefined' ? null : new MutationObserver(function () {
+          if (timer !== null) return
+          timer = setTimeout(function () {
+            timer = null
+            scan()
+          }, 100)
+        })
+        if (observer && root) observer.observe(root, { childList: true, subtree: true, characterData: true })
+
+        return function () {
+          if (timer !== null) clearTimeout(timer)
+          if (observer) observer.disconnect()
+        }
+      }, [usage])
+
+      return null
     }
 
     var inject = ['slots']
 
     function apply(ctx) {
       ctx.slots.inject('conversation.composer.dock', () => ctx.slots.register(
-        { name: 'conversation.composer.dock', id: 'cache-precision', order: 2, label: '缓存命中(3位)' },
-        CacheLine,
+        { name: 'conversation.composer.dock', id: 'cache-precision-patch', order: 99, label: '' },
+        PatchEntry,
       ))
     }
 

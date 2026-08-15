@@ -1,11 +1,12 @@
 # dsh-cache-precision
 
-Adds a three-decimal cache-hit readout to the DSH Web composer dock.
+Rewrites the built-in cache-hit percentage **in place** with three decimals.
 
 - Reads the same `tokenUsage` projection as the built-in stats line.
-- Denominator matches DSH: `uncachedInputTokens + cacheReadTokens + cacheWriteTokens`.
-- Hover shows exact token counts (hit / input).
-- The built-in integer badge is left untouched; this plugin adds the precise value beside it.
+- Replaces only the `缓存命中 12%` / `Cache hit 12%` text node; all other
+  stats groups remain exactly as DSH renders them.
+- Hover tooltip is inherited from the original line.
+- Re-applies automatically after React re-renders (MutationObserver + debounce).
 
 ## Install
 
@@ -13,4 +14,4 @@ Adds a three-decimal cache-hit readout to the DSH Web composer dock.
 dsh plugin --profile web add D:\Dsh\tools\dsh-cache-precision
 ```
 
-Restart `dsh web`, then look at the bottom dock of any conversation.
+Restart `dsh web`.
