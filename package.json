@@ -1,0 +1,25 @@
+{
+  "name": "dsh-cache-precision",
+  "version": "0.1.0",
+  "description": "Show the built-in session cache-hit rate with three decimal places in the DSH composer dock.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["index.js", "client.js", "cordis.patch.yml", "README.md"],
+  "license": "MIT",
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}
