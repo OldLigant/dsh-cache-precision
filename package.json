@@ -9,10 +9,17 @@
     "./client": "./client.js",
     "./package.json": "./package.json"
   },
-  "files": ["index.js", "client.js", "cordis.patch.yml", "README.md"],
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
   "license": "MIT",
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": [
@@ -21,5 +28,22 @@
         "@deepseek-ai/dsh-client-ui-conversation"
       ]
     }
-  }
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cheng-cheng9669/dsh-cache-precision.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Cheng-cheng9669/dsh-cache-precision/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cache-hit",
+    "token-usage"
+  ]
 }
