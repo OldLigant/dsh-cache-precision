@@ -37,6 +37,20 @@ window.__ModuleLoader__.load({
       return true
     }
 
+    function widenStatsRoot(node) {
+      var el = node.parentElement
+      for (var depth = 0; el && depth < 6; depth++, el = el.parentElement) {
+        var cls = typeof el.className === 'string' ? el.className : ''
+        if (cls.indexOf('_root') < 0) continue
+        var text = el.textContent || ''
+        if (text.indexOf('缓存命中') < 0 && text.indexOf('Cache hit') < 0) return
+        el.style.maxWidth = 'min(calc(var(--dsh-chat-content-width) + 260px), calc(100vw - 48px))'
+        el.style.width = '100%'
+        el.style.boxSizing = 'border-box'
+        return
+      }
+    }
+
     function applyPatch(usage, root) {
       var value = cacheHitPercent(usage)
       if (!value || !root || typeof document === 'undefined') return 0
@@ -44,6 +58,8 @@ window.__ModuleLoader__.load({
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
       var node
       while ((node = walker.nextNode())) {
+        var text = node.nodeValue || ''
+        if (/^(缓存命中|Cache hit)\s+\d+(?:\.\d+)?%$/.test(text)) widenStatsRoot(node)
         if (patchTextNode(node, value)) changed++
       }
       return changed

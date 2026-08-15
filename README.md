@@ -1,12 +1,15 @@
 # dsh-cache-precision
 
-Rewrites the built-in cache-hit percentage **in place** with three decimals.
+Two in-place composer-dock refinements:
 
-- Reads the same `tokenUsage` projection as the built-in stats line.
-- Replaces only the `缓存命中 12%` / `Cache hit 12%` text node; all other
-  stats groups remain exactly as DSH renders them.
-- Hover tooltip is inherited from the original line.
-- Re-applies automatically after React re-renders (MutationObserver + debounce).
+1. Rewrites the built-in cache-hit percentage with **three decimals**
+   (`缓存命中 12%` -> `缓存命中 12.345%`).
+2. Widens the built-in stats line (`max-width` grows beyond the chat content
+   width) so the extra precision and other dock items no longer truncate with
+   `...`.
+
+Both read the same `tokenUsage` projection and re-apply automatically after
+React re-renders.
 
 ## Install
 

@@ -1,7 +1,7 @@
 {
   "name": "dsh-cache-precision",
-  "version": "0.1.0",
-  "description": "Show the built-in session cache-hit rate with three decimal places in the DSH composer dock.",
+  "version": "0.1.1",
+  "description": "In-place three-decimal cache-hit percentage plus a widened composer stats line for DSH Web.",
   "type": "module",
   "main": "./index.js",
   "exports": {
