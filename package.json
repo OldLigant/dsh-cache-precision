@@ -1,7 +1,7 @@
 {
   "name": "dsh-cache-precision",
-  "version": "0.1.1",
-  "description": "In-place three-decimal cache-hit percentage plus a widened composer stats line for DSH Web.",
+  "version": "0.2.0",
+  "description": "In-place adaptive-precision cache-hit percentage plus a widened composer stats line for DSH Web.",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Cheng-cheng9669/dsh-cache-precision.git"
+    "url": "git+https://github.com/OldLigant/dsh-cache-precision.git"
   },
   "bugs": {
-    "url": "https://github.com/Cheng-cheng9669/dsh-cache-precision/issues"
+    "url": "https://github.com/OldLigant/dsh-cache-precision/issues"
   },
   "keywords": [
     "dsh",
