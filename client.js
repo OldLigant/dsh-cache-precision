@@ -1,9 +1,11 @@
 /* dsh-cache-precision client half: in-place precise cache-hit percentage.
  *
- * The built-in StatsLine renders "缓存命中 12%" with Math.round(). This
- * plugin mounts an invisible entry in the same composer dock, reads the same
- * tokenUsage projection, and rewrites only the cache-hit text node in place
- * to three decimals. Every other stats group stays untouched.
+ * The built-in StatsLine renders the cache hit as an integer percentage
+ * ("缓存命中 12%"). This plugin mounts an invisible entry in the same
+ * composer dock, reads the same tokenUsage projection, and rewrites only
+ * the cache-hit text node in place with adaptive precision: two decimals
+ * by default, extended just enough that a value below 100% never
+ * round-displays as 100%. Every other stats group stays untouched.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-cache-precision',
@@ -26,12 +28,25 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // float64 stays faithful to ~14 significant digits, so 12 decimals is
+    // the last place a near-100 percentage can still be told apart from 100.
+    var MAX_PERCENT_DIGITS = 12
+
+    function formatPercent(percent) {
+      var digits = 2
+      var text = percent.toFixed(digits)
+      while (digits < MAX_PERCENT_DIGITS && percent < 100 && Number(text) >= 100) {
+        text = percent.toFixed(++digits)
+      }
+      return text
+    }
+
     function patchTextNode(node, value) {
       var text = node.nodeValue
       if (!text) return false
       var match = text.match(/^(缓存命中|Cache hit)\s+\d+(?:\.\d+)?%$/)
       if (!match) return false
-      var next = match[1] + ' ' + value.percent.toFixed(3) + '%'
+      var next = match[1] + ' ' + formatPercent(value.percent) + '%'
       if (text === next) return false
       node.nodeValue = next
       return true
