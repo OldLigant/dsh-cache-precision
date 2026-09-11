@@ -1,7 +1,7 @@
 {
   "name": "dsh-cache-precision",
-  "version": "0.2.0",
-  "description": "In-place adaptive-precision cache-hit percentage plus a widened composer stats line for DSH Web.",
+  "version": "0.3.0",
+  "description": "Adaptive-precision cache-hit readouts for DSH Web's stats pills and usage dialogs.",
   "type": "module",
   "main": "./index.js",
   "exports": {

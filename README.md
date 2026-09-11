@@ -7,43 +7,47 @@ English | [中文](README.zh.md)
 > maintained here with a different precision policy — see
 > [Differences from upstream](#differences-from-upstream).
 
-Two in-place refinements to the DSH Web composer dock's built-in stats line:
+Adaptive-precision cache-hit readouts for the DSH Web composer, everywhere
+the hit rate shows up. Targeting the 0.1.5-rc.2 stats pills; on older
+builds with the single StatsLine row the label rewrite still applies.
 
-1. **Adaptive-precision cache hit** (`缓存命中 12%` -> `缓存命中 12.35%`).
-   Once the cache has warmed up, the integer part of the hit rate stops
-   carrying information: climbing from 99% to 99.5% can easily take longer
-   than the entire initial climb to 99%, and what you actually want to know
-   at that point is *which* decimals follow the 99. The built-in readout
-   shows an integer percentage and goes silent exactly there. This plugin
-   rewrites the readout in place with **two decimals by default**, and adds
-   a decimal only when the current precision would round-display a sub-100
-   hit rate as `100%` — from 99.995% it shows three decimals, from 99.9995%
-   four, and so on, up to what float64 can still distinguish (12 decimals).
-   A true 100% keeps reading `100.00%`.
+1. **The usage pill label** (`6.8M tok · 缓存命中 97%`) is the rough,
+   at-a-glance reading — rewritten in place to **one decimal**
+   (`缓存命中 96.96%` -> `缓存命中 97.0%`). Once the cache has warmed up,
+   the integer part stops moving: climbing from 99% to 99.5% can easily
+   take longer than the entire initial climb to 99%, and one decimal keeps
+   that crawl visible without turning a glance into a detail view.
 
-   That "never show 100% unless it is 100%" rule is not our invention: it is
-   how DSH's own cache-hit formatter behaves (`formatCacheHitPercent` in
+2. **Both usage dialogs** — the pill's session-wide Token-usage dialog and
+   each turn's 本轮用量 dialog — are where you actually inspect the
+   numbers, so they get **two decimals**. The built-in session dialog
+   shows an integer there, and the per-turn dialog only one; both are
+   rewritten to two so the detail view resolves what the pill only
+   suggests.
+
+3. **Adaptive precision everywhere.** On every surface, extra decimals are
+   added exactly when the current precision would round-display a sub-100
+   hit rate as `100%` — from 99.95% at one base decimal it shows two, from
+   99.995% three, and so on, up to what float64 can still distinguish
+   (12 decimals). A true 100% keeps the plain reading. That "never show
+   100% unless it is 100%" rule is not our invention: it is how DSH's own
+   cache-hit formatter behaves (`formatCacheHitPercent` in
    `packages/client/ui-chat/src/client/chat/token-format.ts` of the
-   deepseek-harness sources — ordinary precision by default, extra digits
-   only when needed to tell a near-perfect rate apart from a perfect one).
-   The cache should be reported as it is.
+   deepseek-harness sources). The cache is reported as it is.
 
-2. **A wider stats line.** On smaller screens — laptops in particular — the
-   built-in line truncates to `...` once it outgrows the chat content width.
-   We want to see the whole line, not an ellipsis: especially the
-   input/output token counts, which matter more to us than the split between
-   model time and tool-call time. The plugin widens the line beyond the chat
-   content width (capped by the viewport) so the readouts and other dock
-   items stop collapsing.
-
-Both refinements read the same `tokenUsage` projection and re-apply
-automatically after React re-renders.
+The session dialog is patched from the same `tokenUsage` projection dsh
+reads; the per-turn dialog is recomputed from the exact bucket counts it
+already displays, so it stays consistent with the row it sits in. The
+stats row is also widened past the chat content width (viewport-capped) so
+the longer readout is not collapsed into an ellipsis, and everything
+re-applies automatically after React re-renders.
 
 ## Differences from upstream
 
-- Upstream always shows **three** decimals. We think two decimals are enough
-  in ordinary use, and extra digits should appear only when they carry
-  information — hence the adaptive policy above.
+- Upstream always shows **three** decimals on the single stats row. We
+  split precision by surface instead: one decimal for the rough pill
+  label, two in the detail dialogs — extra digits should appear where they
+  carry information, not everywhere at once.
 - The dynamic-precision ladder deliberately follows DSH's own statline
   formatter: report the cache as it is; a rate that has not fully hit must
   never read as 100%.

@@ -1,14 +1,14 @@
 export const name = 'dsh-cache-precision'
 
-// Adaptive precision: 2 decimals by default, extended just enough that a
-// value below 100% never round-displays as 100% (>= 99.995% shows 3
-// decimals, >= 99.9995% shows 4, ...). float64 stays faithful to ~14
-// significant digits, so 12 decimals is the last place a near-100
-// percentage can still be told apart from 100.
+// Adaptive precision: extended just enough that a value below 100% never
+// round-displays as 100% (at one base decimal, >= 99.95% shows 2 decimals,
+// >= 99.995% shows 3, ...). float64 stays faithful to ~14 significant
+// digits, so 12 decimals is the last place a near-100 percentage can be
+// told apart from 100.
 export const MAX_PERCENT_DIGITS = 12
 
-export function formatPercent(percent) {
-  let digits = 2
+export function formatPercent(percent, baseDigits = 1) {
+  let digits = Math.max(0, Math.min(MAX_PERCENT_DIGITS, baseDigits))
   let text = percent.toFixed(digits)
   while (digits < MAX_PERCENT_DIGITS && percent < 100 && Number(text) >= 100) {
     text = percent.toFixed(++digits)
