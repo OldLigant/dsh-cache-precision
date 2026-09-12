@@ -3,11 +3,13 @@
  * dsh 0.1.5-rc.2 shows the cache hit in three places: the usage pill's
  * label ("缓存命中 97%") under the composer, the pill's Token-usage
  * dialog, and each turn's 本轮用量 dialog. The pill label is the rough
- * reading and keeps one decimal; both detail dialogs get two. Everywhere
- * the precision extends just enough that a value below 100% never
- * round-displays as 100% — the ladder dsh's own formatter follows. The
- * session dialog is patched from the tokenUsage projection; the per-turn
- * dialog is recomputed from the exact bucket counts it already displays.
+ * reading and keeps one decimal; both detail dialogs always show exactly
+ * one more decimal than that rough reading — a detail should be the more
+ * detailed one. Everywhere the precision extends just enough that a value
+ * below 100% never round-displays as 100% — the ladder dsh's own formatter
+ * follows. The session dialog is patched from the tokenUsage projection;
+ * the per-turn dialog is recomputed from the exact bucket counts it
+ * already displays.
  */
 
 window.__ModuleLoader__.load({
@@ -21,13 +23,22 @@ window.__ModuleLoader__.load({
     // the last place a near-100 percentage can still be told apart from 100.
     var MAX_PERCENT_DIGITS = 12
 
-    function formatPercent(percent, baseDigits) {
+    function percentDigits(percent, baseDigits) {
       var digits = Math.max(0, Math.min(MAX_PERCENT_DIGITS, baseDigits))
-      var text = percent.toFixed(digits)
-      while (digits < MAX_PERCENT_DIGITS && percent < 100 && Number(text) >= 100) {
-        text = percent.toFixed(++digits)
+      while (digits < MAX_PERCENT_DIGITS && percent < 100 && Number(percent.toFixed(digits)) >= 100) {
+        digits++
       }
-      return text
+      return digits
+    }
+
+    function formatPercent(percent, baseDigits) {
+      return percent.toFixed(percentDigits(percent, baseDigits))
+    }
+
+    // Detail surfaces show exactly one more decimal than the rough reading
+    // of the same value, so a detail is always the more detailed one.
+    function formatDetailPercent(percent, baseDigits) {
+      return percent.toFixed(Math.min(MAX_PERCENT_DIGITS, percentDigits(percent, baseDigits) + 1))
     }
 
     function cacheHitPercent(usage) {
@@ -110,15 +121,14 @@ window.__ModuleLoader__.load({
       return null
     }
 
-    function setPercentNode(node, percent, baseDigits) {
-      var next = formatPercent(percent, baseDigits) + '%'
-      if (node.nodeValue === next) return 0
-      node.nodeValue = next
+    function setPercentNode(node, text) {
+      if (node.nodeValue === text) return 0
+      node.nodeValue = text
       return 1
     }
 
     // Session Token-usage dialog: its rows mirror the tokenUsage projection,
-    // so patch the hit rate straight from the projection at dialog precision.
+    // so patch the hit rate straight from the projection at detail precision.
     function patchSessionDialog(value, root) {
       var dl = root.querySelector('dl[data-session-stats-usage]')
       if (!dl) return 0
@@ -126,7 +136,7 @@ window.__ModuleLoader__.load({
       if (!dd) return 0
       var node = percentNode(dd)
       if (!node) return 0
-      return setPercentNode(node, value.percent, 2)
+      return setPercentNode(node, formatDetailPercent(value.percent, 1) + '%')
     }
 
     function exactCount(text) {
@@ -168,7 +178,10 @@ window.__ModuleLoader__.load({
         if (!(denominator > 0)) continue
         var node = percentNode(dd)
         if (!node) continue
-        changed += setPercentNode(node, (counts.read / denominator) * 100, 2)
+        changed += setPercentNode(
+          node,
+          formatDetailPercent((counts.read / denominator) * 100, 1) + '%',
+        )
       }
       return changed
     }

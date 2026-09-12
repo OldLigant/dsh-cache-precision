@@ -1,6 +1,6 @@
 {
   "name": "dsh-cache-precision",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Adaptive-precision cache-hit readouts for DSH Web's stats pills and usage dialogs.",
   "type": "module",
   "main": "./index.js",

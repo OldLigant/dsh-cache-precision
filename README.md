@@ -20,10 +20,12 @@ builds with the single StatsLine row the label rewrite still applies.
 
 2. **Both usage dialogs** — the pill's session-wide Token-usage dialog and
    each turn's 本轮用量 dialog — are where you actually inspect the
-   numbers, so they get **two decimals**. The built-in session dialog
-   shows an integer there, and the per-turn dialog only one; both are
-   rewritten to two so the detail view resolves what the pill only
-   suggests.
+   numbers, so they always show **exactly one more decimal than the pill
+   label** for the same value: a detail should be the more detailed
+   reading, not repeat it. The built-in session dialog shows an integer
+   there and the per-turn dialog only one; both are rewritten to sit one
+   step above the pill, and when the pill climbs to two decimals near
+   100%, the dialogs climb with it to three.
 
 3. **Adaptive precision everywhere.** On every surface, extra decimals are
    added exactly when the current precision would round-display a sub-100

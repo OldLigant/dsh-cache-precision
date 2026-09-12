@@ -1,6 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { cacheHitPercent, formatPercent, MAX_PERCENT_DIGITS } from '../index.js'
+import {
+  cacheHitPercent,
+  formatPercent,
+  formatDetailPercent,
+  percentDigits,
+  MAX_PERCENT_DIGITS,
+} from '../index.js'
 
 test('defaults to one decimal, the rough pill reading', () => {
   const usage = { uncachedInputTokens: 1000, cacheReadTokens: 123, cacheWriteTokens: 0 }
@@ -15,6 +21,40 @@ test('includes cache-write tokens in the denominator like DSH', () => {
 test('detail dialogs request two decimals through the base digits', () => {
   assert.equal(formatPercent(123 / 1123 * 100, 2), (123 / 1123 * 100).toFixed(2))
   assert.equal(formatPercent(123 / 1123 * 100, 1), (123 / 1123 * 100).toFixed(1))
+})
+
+test('detail format shows exactly one more decimal than the rough reading', () => {
+  assert.equal(percentDigits(97.34, 1), 1)
+  assert.equal(formatDetailPercent(97.34, 1), '97.34')
+  assert.equal(percentDigits(99.96, 1), 2)
+  assert.equal(formatDetailPercent(99.96, 1), '99.960')
+  assert.equal(percentDigits(99.995, 1), 3)
+  assert.equal(formatDetailPercent(99.995, 1), '99.9950')
+})
+
+test('detail format follows the rough ladder one step behind', () => {
+  // The pill extends to five digits at 99.99997%, so the detail shows six.
+  const usage = { uncachedInputTokens: 30, cacheReadTokens: 99999970, cacheWriteTokens: 0 }
+  assert.equal(cacheHitPercent(usage), '99.99997')
+  assert.equal(formatDetailPercent((99999970 / 100000000) * 100, 1), '99.999970')
+})
+
+test('true 100% reads one decimal outside and two in details', () => {
+  assert.equal(formatPercent(100, 1), '100.0')
+  assert.equal(formatDetailPercent(100, 1), '100.00')
+})
+
+test('detail format never round-displays a sub-100 value as 100% either', () => {
+  for (let miss = 1; miss <= 40; miss++) {
+    const percent = (1 - miss / 1e6) * 100
+    const text = formatDetailPercent(percent, 1)
+    assert.equal(Number(text) < 100, true, `${percent} displayed as ${text}%`)
+  }
+})
+
+test('detail digits meet the rough reading at the float64 cap', () => {
+  assert.equal(formatDetailPercent(25, 99), formatPercent(25, 99))
+  assert.equal(formatDetailPercent(25, 99), '25.000000000000')
 })
 
 test('returns null when no input was billed', () => {
